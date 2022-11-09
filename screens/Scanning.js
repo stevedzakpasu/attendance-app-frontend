@@ -25,7 +25,7 @@ export default function Scanning({ route }) {
       .then(() => {
         Alert.alert(
           "Successfully Scanned",
-          `Member with name ${result.first_name} has been marked present!`,
+          `${result.first_name} has been marked present!`,
           [{ text: "Done", onPress: () => setScanned(false) }]
         );
       })

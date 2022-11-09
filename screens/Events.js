@@ -6,17 +6,11 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useContext } from "react";
+import { AppContext } from "../contexts/AppContext";
 
 export default function Events({ navigation }) {
-  const [data, setData] = useState({});
-
-  useEffect(() => {
-    axios
-      .get("https://ug-attendance-app.herokuapp.com/api/events/")
-      .then((response) => setData(response.data));
-  }, [data]);
+  const { eventsData, setEventsData } = useContext(AppContext);
 
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
@@ -35,7 +29,7 @@ export default function Events({ navigation }) {
   return (
     <View>
       <FlatList
-        data={data}
+        data={eventsData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />

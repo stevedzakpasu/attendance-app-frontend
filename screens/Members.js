@@ -7,16 +7,11 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useContext } from "react";
+import { AppContext } from "../contexts/AppContext";
 export default function Members({ navigation }) {
-  const [data, setData] = useState({});
+  const { membersData, setMembersData } = useContext(AppContext);
 
-  useEffect(() => {
-    axios
-      .get("https://ug-attendance-app.herokuapp.com/api/members/")
-      .then((response) => setData(response.data));
-  }, []);
   const Item = ({ title }) => (
     <View style={styles.item}>
       <Text style={styles.title}>{title}</Text>
@@ -38,7 +33,7 @@ export default function Members({ navigation }) {
   return (
     <View>
       <FlatList
-        data={data}
+        data={membersData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />

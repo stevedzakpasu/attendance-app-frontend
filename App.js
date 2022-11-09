@@ -4,9 +4,13 @@ import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
+import { AppContext } from "./contexts/AppContext";
+import axios from "axios";
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const [eventsData, setEventsData] = useState({});
+  const [membersData, setMembersData] = useState({});
   useEffect(() => {
     async function prepare() {
       try {
@@ -28,6 +32,18 @@ export default function App() {
     prepare();
   }, []);
 
+  useEffect(() => {
+    axios
+      .get("https://ug-attendance-app.herokuapp.com/api/events/")
+      .then((response) => setEventsData(response.data));
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("https://ug-attendance-app.herokuapp.com/api/members/")
+      .then((response) => setMembersData(response.data));
+  }, []);
+
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
       await SplashScreen.hideAsync();
@@ -41,7 +57,11 @@ export default function App() {
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <NavigationContainer>
-        <MyStack />
+        <AppContext.Provider
+          value={{ eventsData, setEventsData, membersData, setMembersData }}
+        >
+          <MyStack />
+        </AppContext.Provider>
       </NavigationContainer>
     </View>
   );
