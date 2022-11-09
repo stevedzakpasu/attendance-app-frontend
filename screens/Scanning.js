@@ -1,4 +1,4 @@
-import { StyleSheet, View, Button, Alert } from "react-native";
+import { StyleSheet, View, Alert } from "react-native";
 import React, { useState, useEffect } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import axios from "axios";
@@ -25,7 +25,7 @@ export default function Scanning({ route }) {
       .then(() => {
         Alert.alert(
           "Successfully Scanned",
-          `Member with name ${result.name} has been marked present!`,
+          `Member with name ${result.first_name} has been marked present!`,
           [{ text: "Done", onPress: () => setScanned(false) }]
         );
       })
@@ -34,19 +34,19 @@ export default function Scanning({ route }) {
         if (err.response.status === 422) {
           Alert.alert(
             "Invalid QR code",
-            "The QR code scanned was not recognized",
+            "The QR code scanned was not recognized, Please try again.",
             [{ text: "Try Again", onPress: () => setScanned(false) }]
           );
         } else if (err.response.status === 404) {
           Alert.alert(
             "Already Recorded",
-            "This member's attendance has already been recorded ",
+            "This member's attendance has already been recorded.",
             [{ text: "Okay", onPress: () => setScanned(false) }]
           );
         } else {
           Alert.alert(
             "Error",
-            "An unknown error occurred, Check your connection and try again ",
+            "An unknown error occurred, Check your connection and try again. ",
             [{ text: "Try Again", onPress: () => setScanned(false) }]
           );
         }

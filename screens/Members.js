@@ -5,6 +5,7 @@ import {
   FlatList,
   StyleSheet,
   StatusBar,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -22,7 +23,17 @@ export default function Members({ navigation }) {
     </View>
   );
 
-  const renderItem = ({ item }) => <Item title={item.name} />;
+  const renderItem = ({ item }) => (
+    <TouchableWithoutFeedback
+      onPress={() => navigation.navigate("Member Details", item)}
+    >
+      <View style={styles.item}>
+        <Text style={styles.title}>
+          {item.first_name} {item.other_names} {item.last_name}
+        </Text>
+      </View>
+    </TouchableWithoutFeedback>
+  );
 
   return (
     <View>
