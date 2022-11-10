@@ -33,7 +33,7 @@ export default function Members({ navigation }) {
   return (
     <View>
       <FlatList
-        data={membersData}
+        data={JSON.parse(membersData)}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />

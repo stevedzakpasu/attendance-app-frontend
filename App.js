@@ -6,11 +6,17 @@ import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { AppContext } from "./contexts/AppContext";
 import axios from "axios";
+import {
+  eventsStoredData,
+  geteventsStoredData,
+  membersStoredData,
+  getMembersStoredData,
+} from "./hooks/LocalStorage";
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const [eventsData, setEventsData] = useState({});
-  const [membersData, setMembersData] = useState({});
+  const [eventsData, setEventsData] = useState([]);
+  const [membersData, setMembersData] = useState([]);
   useEffect(() => {
     async function prepare() {
       try {
@@ -22,6 +28,16 @@ export default function App() {
           thin: require("./assets/fonts/Roboto-Thin.ttf"),
           light: require("./assets/fonts/Roboto-Light.ttf"),
         });
+        await axios
+          .get("https://ug-attendance-app.herokuapp.com/api/events/")
+          .then((response) => {
+            eventsStoredData("events_data", JSON.stringify(response.data));
+          });
+        await axios
+          .get("https://ug-attendance-app.herokuapp.com/api/members/")
+          .then((response) =>
+            membersStoredData("members_data", JSON.stringify(response.data))
+          );
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (e) {
         console.warn(e);
@@ -31,18 +47,26 @@ export default function App() {
     }
     prepare();
   }, []);
-
   useEffect(() => {
-    axios
-      .get("https://ug-attendance-app.herokuapp.com/api/events/")
-      .then((response) => setEventsData(response.data));
+    geteventsStoredData("events_data").then((response) => {
+      setEventsData(response);
+    });
+    getMembersStoredData("members_data").then((response) => {
+      setMembersData(response);
+    });
   }, []);
 
-  useEffect(() => {
-    axios
-      .get("https://ug-attendance-app.herokuapp.com/api/members/")
-      .then((response) => setMembersData(response.data));
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get("https://ug-attendance-app.herokuapp.com/api/events/")
+  //     .then((response) => setEventsData(response.data));
+  // }, []);
+
+  // useEffect(() => {
+  //   axios
+  //     .get("https://ug-attendance-app.herokuapp.com/api/members/")
+  //     .then((response) => setMembersData(response.data));
+  // }, []);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
