@@ -29,7 +29,7 @@ export default function Events({ navigation }) {
   return (
     <View>
       <FlatList
-        data={JSON.parse(eventsData)}
+        data={eventsData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />

@@ -1,12 +1,18 @@
 import { StyleSheet, View, Alert } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
+import { AppContext } from "../contexts/AppContext";
 import axios from "axios";
+import { unsynced } from "../hooks/LocalStorage";
+import { eventsStoredData, membersStoredData } from "../hooks/LocalStorage";
 
 export default function Scanning({ route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [result, setResult] = useState("");
+  const { membersData, setMembersData } = useContext(AppContext);
+  const { eventsData, setEventsData } = useContext(AppContext);
+  const { queue, setQueue } = useContext(AppContext);
+
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
       const status = await BarCodeScanner.requestPermissionsAsync();
@@ -17,40 +23,47 @@ export default function Scanning({ route }) {
   }, []);
 
   const handleBarCodeScanned = ({ type, data }) => {
-    setResult(JSON.parse(data));
-    axios
-      .post(
-        `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${result.id}`
-      )
-      .then(() => {
-        Alert.alert(
-          "Successfully Scanned",
-          `${result.first_name} has been marked present!`,
-          [{ text: "Done", onPress: () => setScanned(false) }]
-        );
-      })
-      .catch((err) => {
-        setScanned(true);
-        if (err.response.status === 422) {
-          Alert.alert(
-            "Invalid QR code",
-            "The QR code scanned was not recognized, Please try again.",
-            [{ text: "Try Again", onPress: () => setScanned(false) }]
-          );
-        } else if (err.response.status === 404) {
-          Alert.alert(
-            "Already Recorded",
-            "This member's attendance has already been recorded.",
-            [{ text: "Okay", onPress: () => setScanned(false) }]
-          );
-        } else {
-          Alert.alert(
-            "Error",
-            "An unknown error occurred, Check your connection and try again. ",
-            [{ text: "Try Again", onPress: () => setScanned(false) }]
-          );
-        }
-      });
+    const scanResults = JSON.parse(data);
+    if (membersData.some((member) => member.id === scanResults.id)) {
+      setScanned(true);
+      const item = eventsData.find((item) => item.id === route.params.id);
+      item.members_attended.push(data);
+
+      Alert.alert(
+        "Attendance Recorded",
+        `${scanResults.first_name} has been marked present!`,
+        [
+          {
+            text: "Done",
+            onPress: () => {
+              setScanned(false);
+            },
+          },
+        ]
+      );
+      axios
+        .post(
+          `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+        )
+        .catch(() => {
+          if (
+            !queue.includes(
+              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+            )
+          ) {
+            queue.push(
+              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+            );
+            unsynced("data", JSON.stringify(queue));
+          }
+        });
+    } else {
+      Alert.alert(
+        "Member not found",
+        "The QR code scanned was not recognized, Please try again.",
+        [{ text: "Try Again", onPress: () => setScanned(false) }]
+      );
+    }
   };
   const Scanner = () => {
     return (
