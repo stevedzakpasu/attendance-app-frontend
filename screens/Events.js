@@ -3,11 +3,11 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  StatusBar,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { AppContext } from "../contexts/AppContext";
+import { getEventsStoredData } from "../hooks/LocalStorage";
 
 export default function Events({ navigation }) {
   const { eventsData, setEventsData } = useContext(AppContext);
@@ -21,11 +21,17 @@ export default function Events({ navigation }) {
         <Text style={styles.category}>{item.category}</Text>
         <Text style={styles.title}>{item.name}</Text>
         <Text style={styles.subtitle}>
-          {item.members_attended.length} Members Attended
+          {eventsData.find((obj) => obj.id === item.id).members_attended.length}{" "}
+          Members Attended
         </Text>
       </View>
     </TouchableWithoutFeedback>
   );
+  // useEffect(() => {
+  //   getEventsStoredData("events_data").then((response) => {
+  //     setEventsData(JSON.parse(response));
+  //   });
+  // }, [eventsData]);
   return (
     <View>
       <FlatList

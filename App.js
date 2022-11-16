@@ -8,10 +8,9 @@ import { AppContext } from "./contexts/AppContext";
 import axios from "axios";
 import {
   eventsStoredData,
-  getEventsStoredData,
   membersStoredData,
+  getEventsStoredData,
   getMembersStoredData,
-  getUnsynced,
 } from "./hooks/LocalStorage";
 
 export default function App() {
@@ -19,6 +18,8 @@ export default function App() {
   const [eventsData, setEventsData] = useState([]);
   const [membersData, setMembersData] = useState([]);
   const [queue, setQueue] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+
   useEffect(() => {
     async function prepare() {
       try {
@@ -42,30 +43,38 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    getUnsynced("data").then((res) => setQueue(JSON.parse(res)));
-    if (queue.length !== 0) {
-      for (const link of queue) {
-        const index = array.indexOf(link);
-        axios.post(link).then(array.splice(index, 1));
+    async function fetchAPIData() {
+      if (queue.length !== 0) {
+        for (const link of queue) {
+          const index = queue.indexOf(link);
+          axios.post(link).then(array.splice(index, 1));
+        }
       }
+      await axios
+        .get("https://ug-attendance-app.herokuapp.com/api/events/")
+        .then((response) => {
+          setEventsData(response.data);
+          eventsStoredData("events_data", JSON.stringify(eventsData));
+        })
+        .catch(() => {
+          getEventsStoredData("events_data").then((response) => {
+            setEventsData(JSON.parse(response));
+          });
+        });
+      await axios
+        .get("https://ug-attendance-app.herokuapp.com/api/members_cards/")
+        .then((response) => {
+          setMembersData(response.data);
+          membersStoredData("members_data", JSON.stringify(membersData));
+        })
+        .catch(() => {
+          getMembersStoredData("members_data").then((response) => {
+            setMembersData(JSON.parse(response));
+          });
+        });
     }
-    axios
-      .get("https://ug-attendance-app.herokuapp.com/api/events/")
-      .then((response) => {
-        eventsStoredData("events_data", JSON.stringify(response.data));
-      });
-    axios
-      .get("https://ug-attendance-app.herokuapp.com/api/members_cards/")
-      .then((response) => {
-        membersStoredData("members_data", JSON.stringify(response.data));
-      });
-    getEventsStoredData("events_data").then((response) =>
-      setEventsData(JSON.parse(response))
-    );
-    getMembersStoredData("members_data").then((response) =>
-      setMembersData(JSON.parse(response))
-    );
-  }, []);
+    fetchAPIData();
+  }, [refresh]);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
@@ -88,6 +97,8 @@ export default function App() {
             setMembersData,
             queue,
             setQueue,
+            refresh,
+            setRefresh,
           }}
         >
           <MyStack />

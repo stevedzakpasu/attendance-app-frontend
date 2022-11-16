@@ -1,8 +1,14 @@
-import { StyleSheet, Text, View, Button } from "react-native";
-import React, { useState } from "react";
+import { Text, View, Button } from "react-native";
+import React, { useState, useContext } from "react";
+import { AppContext } from "../contexts/AppContext";
 
 export default function EventDetails({ route, navigation }) {
-  const [attendees, setAttendees] = useState(route.params.members_attended);
+  const { eventsData } = useContext(AppContext);
+
+  const [attendees, setAttendees] = useState(
+    eventsData.find((event) => event.id === route.params.id).members_attended
+  );
+
   return (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 25 }}>
@@ -33,11 +39,11 @@ export default function EventDetails({ route, navigation }) {
             marginBottom: 15,
           }}
         >
-          Attendees ({route.params.members_attended.length})
+          Attendees ({attendees.length})
         </Text>
         {attendees.map(({ first_name, other_names, last_name, id }) => (
-          <Text style={{ fontFamily: "regular", fontSize: 18 }} key={id}>
-            {id}. {first_name} {other_names} {last_name}
+          <Text style={{ fontFamily: "regular", fontSize: 20 }} key={id}>
+            {`\u25CF ${first_name} ${other_names} ${last_name}`}
           </Text>
         ))}
       </View>
@@ -59,11 +65,3 @@ export default function EventDetails({ route, navigation }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 32,
-    fontFamily: "bold",
-    textAlign: "center",
-  },
-});

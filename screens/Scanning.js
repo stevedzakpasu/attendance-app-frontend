@@ -3,15 +3,14 @@ import React, { useState, useEffect, useContext } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { AppContext } from "../contexts/AppContext";
 import axios from "axios";
-import { unsynced } from "../hooks/LocalStorage";
-import { eventsStoredData, membersStoredData } from "../hooks/LocalStorage";
+import { unsynced, eventsStoredData } from "../hooks/LocalStorage";
 
 export default function Scanning({ route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const { membersData, setMembersData } = useContext(AppContext);
-  const { eventsData, setEventsData } = useContext(AppContext);
-  const { queue, setQueue } = useContext(AppContext);
+  const { membersData, eventsData, setRefresh, refresh } =
+    useContext(AppContext);
+  const event = eventsData.find((event) => event.id === route.params.id);
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -24,23 +23,19 @@ export default function Scanning({ route }) {
 
   const handleBarCodeScanned = ({ type, data }) => {
     const scanResults = JSON.parse(data);
-    if (membersData.some((member) => member.id === scanResults.id)) {
+    if (
+      membersData.some(
+        (member) =>
+          member.id === scanResults.id &&
+          member.first_name === scanResults.first_name
+      )
+    ) {
       setScanned(true);
-      const item = eventsData.find((item) => item.id === route.params.id);
-      item.members_attended.push(data);
+      setRefresh(!refresh);
 
-      Alert.alert(
-        "Attendance Recorded",
-        `${scanResults.first_name} has been marked present!`,
-        [
-          {
-            text: "Done",
-            onPress: () => {
-              setScanned(false);
-            },
-          },
-        ]
-      );
+      event.members_attended.push(JSON.parse(data));
+      eventsStoredData("events_data", JSON.stringify(eventsData));
+
       axios
         .post(
           `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
@@ -57,7 +52,21 @@ export default function Scanning({ route }) {
             unsynced("data", JSON.stringify(queue));
           }
         });
+
+      Alert.alert(
+        "Attendance Recorded",
+        `${scanResults.first_name} has been marked present!`,
+        [
+          {
+            text: "Done",
+            onPress: () => {
+              setScanned(false);
+            },
+          },
+        ]
+      );
     } else {
+      setScanned(true);
       Alert.alert(
         "Member not found",
         "The QR code scanned was not recognized, Please try again.",

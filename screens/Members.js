@@ -7,16 +7,10 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { AppContext } from "../contexts/AppContext";
 export default function Members({ navigation }) {
   const { membersData, setMembersData } = useContext(AppContext);
-
-  const Item = ({ title }) => (
-    <View style={styles.item}>
-      <Text style={styles.title}>{title}</Text>
-    </View>
-  );
 
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
