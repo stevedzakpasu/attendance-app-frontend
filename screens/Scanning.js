@@ -32,26 +32,23 @@ export default function Scanning({ route }) {
     ) {
       setScanned(true);
       setRefresh(!refresh);
-
       event.members_attended.push(JSON.parse(data));
       eventsStoredData("events_data", JSON.stringify(eventsData));
 
-      axios
-        .post(
-          `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-        )
-        .catch(() => {
-          if (
-            !queue.includes(
-              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-            )
-          ) {
-            queue.push(
-              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-            );
-            unsynced("data", JSON.stringify(queue));
-          }
-        });
+      axios.post(
+        `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+      );
+
+      // if (
+      //   !queue.includes(
+      //     `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+      //   )
+      // ) {
+      //   queue.push(
+      //     `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+      //   );
+      //   unsynced("data", JSON.stringify(queue));
+      // }
 
       Alert.alert(
         "Attendance Recorded",

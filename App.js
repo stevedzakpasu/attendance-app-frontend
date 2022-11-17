@@ -1,4 +1,5 @@
 import { NavigationContainer } from "@react-navigation/native";
+import * as Network from "expo-network";
 import MyStack from "./navigators/Stack";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -18,7 +19,19 @@ export default function App() {
   const [eventsData, setEventsData] = useState([]);
   const [membersData, setMembersData] = useState([]);
   const [queue, setQueue] = useState([]);
-  const [refresh, setRefresh] = useState(false);
+  const [online, setOnline] = useState(true);
+  const [refresh, setRefresh] = useState(true);
+  let eventsLocalStorage = getEventsStoredData("events_data");
+  let membersLocalStorage = getMembersStoredData("members_data");
+
+  useEffect(() => {
+    async function checkInternetConnectivity() {
+      await Network.getNetworkStateAsync().then((response) =>
+        setOnline(response.isInternetReachable)
+      );
+    }
+    checkInternetConnectivity();
+  });
 
   useEffect(() => {
     async function prepare() {
@@ -44,36 +57,36 @@ export default function App() {
 
   useEffect(() => {
     async function fetchAPIData() {
-      if (queue.length !== 0) {
-        for (const link of queue) {
-          const index = queue.indexOf(link);
-          axios.post(link).then(array.splice(index, 1));
-        }
+      if (online) {
+        await axios
+          .get("https://ug-attendance-app.herokuapp.com/api/events/")
+          .then((response) => {
+            setEventsData(response.data);
+            eventsStoredData("events_data", JSON.stringify(response.data));
+          });
+
+        await axios
+          .get("https://ug-attendance-app.herokuapp.com/api/members_cards/")
+          .then((response) => {
+            setMembersData(response.data);
+            membersStoredData("members_data", JSON.stringify(response.data));
+          });
       }
-      await axios
-        .get("https://ug-attendance-app.herokuapp.com/api/events/")
-        .then((response) => {
-          setEventsData(response.data);
-          eventsStoredData("events_data", JSON.stringify(eventsData));
-        })
-        .catch(() => {
-          getEventsStoredData("events_data").then((response) => {
-            setEventsData(JSON.parse(response));
-          });
-        });
-      await axios
-        .get("https://ug-attendance-app.herokuapp.com/api/members_cards/")
-        .then((response) => {
-          setMembersData(response.data);
-          membersStoredData("members_data", JSON.stringify(membersData));
-        })
-        .catch(() => {
-          getMembersStoredData("members_data").then((response) => {
-            setMembersData(JSON.parse(response));
-          });
-        });
     }
     fetchAPIData();
+  }, [refresh]);
+
+  useEffect(() => {
+    async function updateDataLocally() {
+      await eventsLocalStorage.then((res) => {
+        setEventsData(JSON.parse(res));
+      });
+      await membersLocalStorage.then((res) => {
+        setMembersData(JSON.parse(res));
+      });
+    }
+
+    updateDataLocally();
   }, [refresh]);
 
   const onLayoutRootView = useCallback(async () => {
@@ -107,3 +120,12 @@ export default function App() {
     </View>
   );
 }
+
+// if (queue.length !== 0 && online) {
+//   for (const link of queue) {`
+//     const index = queue.indexOf(link);
+//     axios.post(link).then(array.splice(index, 1));
+//   }
+// }
+
+//
