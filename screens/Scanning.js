@@ -8,7 +8,7 @@ import { unsynced, eventsStoredData } from "../hooks/LocalStorage";
 export default function Scanning({ route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const { membersData, eventsData, setRefresh, refresh } =
+  const { membersData, eventsData, setRefresh, refresh, queue, online } =
     useContext(AppContext);
   const event = eventsData.find((event) => event.id === route.params.id);
 
@@ -21,8 +21,9 @@ export default function Scanning({ route }) {
     getBarCodeScannerPermissions();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  async function handleBarCodeScanned({ type, data }) {
     const scanResults = JSON.parse(data);
+
     if (
       membersData.some(
         (member) =>
@@ -31,37 +32,53 @@ export default function Scanning({ route }) {
       )
     ) {
       setScanned(true);
-      setRefresh(!refresh);
-      event.members_attended.push(JSON.parse(data));
-      eventsStoredData("events_data", JSON.stringify(eventsData));
-
-      axios.post(
-        `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-      );
-
-      // if (
-      //   !queue.includes(
-      //     `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-      //   )
-      // ) {
-      //   queue.push(
-      //     `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-      //   );
-      //   unsynced("data", JSON.stringify(queue));
-      // }
-
-      Alert.alert(
-        "Attendance Recorded",
-        `${scanResults.first_name} has been marked present!`,
-        [
-          {
-            text: "Done",
-            onPress: () => {
-              setScanned(false);
+      if (
+        event.members_attended.some(
+          (member) =>
+            member.id === scanResults.id &&
+            member.first_name === scanResults.first_name
+        )
+      ) {
+        Alert.alert(
+          "Attendance Already Recorded",
+          `${scanResults.first_name} has already been marked present!`,
+          [
+            {
+              text: "Done",
+              onPress: () => {
+                setScanned(false);
+              },
             },
-          },
-        ]
-      );
+          ]
+        );
+      } else {
+        event.members_attended.push(scanResults);
+        eventsStoredData("events_data", JSON.stringify(eventsData));
+        setRefresh(!refresh);
+        Alert.alert(
+          "Attendance Recorded",
+          `${scanResults.first_name} has been marked present!`,
+          [
+            {
+              text: "Done",
+              onPress: () => {
+                setScanned(false);
+              },
+            },
+          ]
+        );
+
+        if (online) {
+          axios.post(
+            `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+          );
+        } else {
+          queue.push(
+            `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+          );
+          unsynced("data", JSON.stringify(queue));
+        }
+      }
     } else {
       setScanned(true);
       Alert.alert(
@@ -70,7 +87,7 @@ export default function Scanning({ route }) {
         [{ text: "Try Again", onPress: () => setScanned(false) }]
       );
     }
-  };
+  }
   const Scanner = () => {
     return (
       <View style={styles.barcodebox}>

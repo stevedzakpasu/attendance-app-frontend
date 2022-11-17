@@ -41,6 +41,7 @@ export default function EventDetails({ route, navigation }) {
         >
           Attendees ({attendees.length})
         </Text>
+
         {attendees.map(({ first_name, other_names, last_name, id }) => (
           <Text style={{ fontFamily: "regular", fontSize: 20 }} key={id}>
             {`\u25CF ${first_name} ${other_names} ${last_name}`}
