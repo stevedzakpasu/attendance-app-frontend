@@ -1,12 +1,11 @@
 import { Text, View, Button } from "react-native";
 import React, { useState, useContext } from "react";
-import { AppContext } from "../contexts/AppContext";
+import { useSelector } from "react-redux";
 
 export default function EventDetails({ route, navigation }) {
-  const { eventsData } = useContext(AppContext);
-
+  const { events, loading } = useSelector((state) => state.event);
   const [attendees, setAttendees] = useState(
-    eventsData.find((event) => event.id === route.params.id).members_attended
+    events.find((event) => event.id === route.params.id).members_attended
   );
 
   return (

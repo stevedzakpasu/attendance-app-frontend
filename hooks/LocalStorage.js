@@ -31,7 +31,7 @@ const getMembersStoredData = async (key) => {
     alert("Something may have gone wrong, please restart the app.");
   }
 };
-const unsynced = async (key, value) => {
+const unsyncedData = async (key, value) => {
   try {
     await AsyncStorage.setItem(key, value);
   } catch (error) {
@@ -39,7 +39,7 @@ const unsynced = async (key, value) => {
   }
 };
 
-const getUnsynced = async (key) => {
+const getUnsyncedData = async (key) => {
   try {
     let data = await AsyncStorage.getItem(key);
     return data;
@@ -53,6 +53,6 @@ export {
   getEventsStoredData,
   membersStoredData,
   getMembersStoredData,
-  unsynced,
-  getUnsynced,
+  unsyncedData,
+  getUnsyncedData,
 };

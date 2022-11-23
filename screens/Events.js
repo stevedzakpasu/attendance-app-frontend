@@ -1,3 +1,14 @@
+// const wait = (timeout) => {
+//   return new Promise((resolve) => setTimeout(resolve, timeout));
+// };
+// import { useContext, useCallback } from "react";
+// import { AppContext } from "../contexts/AppContext";
+// const { eventsData, refresh, setRefresh } = useContext(AppContext);
+
+// const onRefresh = useCallback(() => {
+//   setRefresh(true);
+//   wait(2000).then(() => setRefresh(false));
+// }, []);
 import {
   View,
   Text,
@@ -5,13 +16,11 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useContext, useEffect } from "react";
-import { AppContext } from "../contexts/AppContext";
-import { getEventsStoredData } from "../hooks/LocalStorage";
 
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { useSelector } from "react-redux";
 export default function Events({ navigation }) {
-  const { eventsData, setEventsData } = useContext(AppContext);
-
+  const { events, loading } = useSelector((state) => state.event);
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
       onPress={() => navigation.navigate("Event Details", item)}
@@ -21,24 +30,35 @@ export default function Events({ navigation }) {
         <Text style={styles.category}>{item.category}</Text>
         <Text style={styles.title}>{item.name}</Text>
         <Text style={styles.subtitle}>
-          {eventsData.find((obj) => obj.id === item.id).members_attended.length}{" "}
+          {events.find((obj) => obj.id === item.id).members_attended.length}{" "}
           Members Attended
         </Text>
       </View>
     </TouchableWithoutFeedback>
   );
-  // useEffect(() => {
-  //   getEventsStoredData("events_data").then((response) => {
-  //     setEventsData(JSON.parse(response));
-  //   });
-  // }, [eventsData]);
+
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <FlatList
-        data={eventsData}
+        data={events}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        // onRefresh={onRefresh}
+        // refreshing={refresh}
       />
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: "blue",
+          width: 250,
+          height: 250,
+          borderRadius: 50,
+          position: "absolute",
+          zIndex: 0,
+        }}
+      >
+        <Text>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }

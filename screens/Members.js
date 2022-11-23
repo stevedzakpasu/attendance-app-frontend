@@ -8,9 +8,12 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useContext, useEffect } from "react";
-import { AppContext } from "../contexts/AppContext";
+import { useSelector } from "react-redux";
+
+// import { AppContext } from "../contexts/AppContext";
 export default function Members({ navigation }) {
-  const { membersData, setMembersData } = useContext(AppContext);
+  // const { membersData, setMembersData } = useContext(AppContext);
+  const { members, loading } = useSelector((state) => state.member);
 
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
@@ -27,7 +30,7 @@ export default function Members({ navigation }) {
   return (
     <View>
       <FlatList
-        data={membersData}
+        data={members}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />

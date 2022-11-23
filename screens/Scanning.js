@@ -3,12 +3,12 @@ import React, { useState, useEffect, useContext } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { AppContext } from "../contexts/AppContext";
 import axios from "axios";
-import { unsynced, eventsStoredData } from "../hooks/LocalStorage";
+import { eventsStoredData, unsyncedData } from "../hooks/LocalStorage";
 
 export default function Scanning({ route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const { membersData, eventsData, setRefresh, refresh, queue, online } =
+  const { membersData, eventsData, queue, online, update, setUpdate } =
     useContext(AppContext);
   const event = eventsData.find((event) => event.id === route.params.id);
 
@@ -54,7 +54,7 @@ export default function Scanning({ route }) {
       } else {
         event.members_attended.push(scanResults);
         eventsStoredData("events_data", JSON.stringify(eventsData));
-        setRefresh(!refresh);
+        setUpdate(!update);
         Alert.alert(
           "Attendance Recorded",
           `${scanResults.first_name} has been marked present!`,
@@ -73,10 +73,16 @@ export default function Scanning({ route }) {
             `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
           );
         } else {
-          queue.push(
-            `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-          );
-          unsynced("data", JSON.stringify(queue));
+          if (
+            !queue.includes(
+              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+            )
+          ) {
+            queue.push(
+              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+            );
+            unsyncedData("unsynced_data", JSON.stringify(queue));
+          }
         }
       }
     } else {
@@ -90,7 +96,7 @@ export default function Scanning({ route }) {
   }
   const Scanner = () => {
     return (
-      <View style={styles.barcodebox}>
+      <View style={styles.barCodeBox}>
         <BarCodeScanner
           onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
           style={{ height: 600, width: 600 }}
@@ -107,7 +113,7 @@ export default function Scanning({ route }) {
 }
 
 const styles = StyleSheet.create({
-  barcodebox: {
+  barCodeBox: {
     alignItems: "center",
     justifyContent: "center",
     height: 300,

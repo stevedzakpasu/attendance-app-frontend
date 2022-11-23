@@ -1,42 +1,43 @@
+// import {
+//   eventsStoredData,
+//   membersStoredData,
+//   getEventsStoredData,
+//   getMembersStoredData,
+//   getUnsyncedData,
+//   unsyncedData,
+// } from "./hooks/LocalStorage";
+
+// const [eventsData, setEventsData] = useState([]);
+// const [membersData, setMembersData] = useState([]);
+// const [queue, setQueue] = useState([]);
+// const [online, setOnline] = useState(true);
+// const [refresh, setRefresh] = useState(false);
+// const [update, setUpdate] = useState(false);
+// import * as Network from "expo-network";
+// const eventsLocalStorage = getEventsStoredData("events_data");
+// const membersLocalStorage = getMembersStoredData("members_data");
+// const unsyncedLocalStorage = getUnsyncedData("unsynced_data");
+
+import { useCallback, useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import * as Network from "expo-network";
 import MyStack from "./navigators/Stack";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
-import { AppContext } from "./contexts/AppContext";
-import axios from "axios";
-import {
-  eventsStoredData,
-  membersStoredData,
-  getEventsStoredData,
-  getMembersStoredData,
-  getUnsynced,
-  unsynced,
-} from "./hooks/LocalStorage";
+import { store } from "./redux/store";
+import { Provider, useDispatch } from "react-redux";
+import { getEvents } from "./redux/features/slices/eventSlice";
+import { getMembers } from "./redux/features/slices/memberSlice";
 
-export default function App() {
+const App = () => {
   const [appIsReady, setAppIsReady] = useState(false);
-  const [eventsData, setEventsData] = useState([]);
-  const [membersData, setMembersData] = useState([]);
-  const [queue, setQueue] = useState([]);
-  const [online, setOnline] = useState(true);
-  const [refresh, setRefresh] = useState(true);
-  let eventsLocalStorage = getEventsStoredData("events_data");
-  let membersLocalStorage = getMembersStoredData("members_data");
-  let unsyncedLocalStorage = getUnsynced("data");
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    async function checkInternetConnectivity() {
-      await Network.getNetworkStateAsync().then((response) =>
-        // setOnline(response.isInternetReachable)
-
-        console.log(queue)
-      );
-    }
-    checkInternetConnectivity();
-  });
+    dispatch(getEvents());
+    dispatch(getMembers());
+  }, []);
 
   useEffect(() => {
     async function prepare() {
@@ -60,60 +61,6 @@ export default function App() {
     prepare();
   }, []);
 
-  useEffect(() => {
-    async function fetchAPIData() {
-      if (online) {
-        if (queue.length !== 0) {
-          for (const link of queue) {
-            const index = queue.indexOf(link);
-            await axios
-              .post(link)
-              .then(queue.splice(index, 1))
-              .finally(unsynced("data", JSON.stringify(queue)));
-          }
-        }
-        await axios
-          .get("https://ug-attendance-app.herokuapp.com/api/events/")
-          .then((response) => {
-            setEventsData(response.data);
-            eventsStoredData("events_data", JSON.stringify(response.data));
-          });
-
-        await axios
-          .get("https://ug-attendance-app.herokuapp.com/api/members_cards/")
-          .then((response) => {
-            setMembersData(response.data);
-            membersStoredData("members_data", JSON.stringify(response.data));
-          });
-      }
-    }
-    fetchAPIData();
-  }, [refresh]);
-
-  useEffect(() => {
-    async function updateDataLocally() {
-      await eventsLocalStorage.then((res) => {
-        setEventsData(JSON.parse(res));
-      });
-      await membersLocalStorage.then((res) => {
-        setMembersData(JSON.parse(res));
-      });
-    }
-
-    updateDataLocally();
-  }, [refresh]);
-
-  useEffect(() => {
-    async function updateQueue() {
-      await unsyncedLocalStorage.then((res) => {
-        if (res !== null) {
-          setQueue(JSON.parse(res));
-        }
-      });
-    }
-    updateQueue();
-  }, []);
-
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
       await SplashScreen.hideAsync();
@@ -127,22 +74,84 @@ export default function App() {
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <NavigationContainer>
-        <AppContext.Provider
-          value={{
-            eventsData,
-            setEventsData,
-            membersData,
-            setMembersData,
-            queue,
-            setQueue,
-            refresh,
-            setRefresh,
-            online,
-          }}
-        >
-          <MyStack />
-        </AppContext.Provider>
+        <MyStack />
       </NavigationContainer>
     </View>
   );
+};
+
+export default function AppWrapper() {
+  return (
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
 }
+// useEffect(() => {
+//   async function updateLocal() {
+//     await eventsLocalStorage.then((res) => {
+//       setEventsData(JSON.parse(res));
+//     });
+//     await membersLocalStorage.then((res) => {
+//       setMembersData(JSON.parse(res));
+//     });
+//   }
+//   updateLocal();
+// }, [update]);
+
+// useEffect(() => {
+//   async function fetchAPIData() {
+//     await eventsLocalStorage.then((res) => {
+//       setEventsData(JSON.parse(res));
+//     });
+//     await membersLocalStorage.then((res) => {
+//       setMembersData(JSON.parse(res));
+//     });
+
+//     await Network.getNetworkStateAsync().then(() =>
+//       // setOnline(response.isInternetReachable)
+//       {
+//         null;
+//         console.log(queue);
+//       }
+//     );
+//     if (online) {
+//       while (queue.length !== 0) {
+//         for (const link of queue) {
+//           const index = queue.indexOf(link);
+//           await axios
+//             .post(link)
+//             .then(queue.splice(index, 1))
+//             .catch((err) => console.warn(err))
+//             .finally(unsyncedData("unsynced_data", JSON.stringify(queue)));
+//         }
+//       }
+
+//       await axios
+//         .get("https://ug-attendance-app.herokuapp.com/api/events/")
+//         .then((response) => {
+//           setEventsData(response.data);
+//           eventsStoredData("events_data", JSON.stringify(response.data));
+//         });
+
+//       await axios
+//         .get("https://ug-attendance-app.herokuapp.com/api/members_cards/")
+//         .then((response) => {
+//           setMembersData(response.data);
+//           membersStoredData("members_data", JSON.stringify(response.data));
+//         });
+//     }
+//   }
+//   fetchAPIData();
+// }, [refresh]);
+
+// useEffect(() => {
+//   async function updateQueue() {
+//     await unsyncedLocalStorage.then((res) => {
+//       if (res !== null) {
+//         setQueue(JSON.parse(res));
+//       }
+//     });
+//   }
+//   updateQueue();
+// }, []);
