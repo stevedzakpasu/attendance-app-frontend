@@ -1,6 +1,4 @@
-import Events from "../screens/Events";
-import Members from "../screens/Members";
-import Stats from "../screens/Stats";
+import { EventsStack, MembersStack, StatsStack } from "./Stacks";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 export default function MyTabs() {
@@ -11,11 +9,11 @@ export default function MyTabs() {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === "Events") {
+          if (route.name === "EventsStack") {
             iconName = focused ? "calendar" : "calendar-outline";
-          } else if (route.name === "Stats") {
+          } else if (route.name === "StatsStack") {
             iconName = focused ? "stats-chart" : "stats-chart-outline";
-          } else if (route.name === "Members") {
+          } else if (route.name === "MembersStack") {
             iconName = focused ? "people" : "people-outline";
           }
 
@@ -30,9 +28,9 @@ export default function MyTabs() {
         },
       })}
     >
-      <Tab.Screen name="Events" component={Events} />
-      <Tab.Screen name="Members" component={Members} />
-      <Tab.Screen name="Stats" component={Stats} />
+      <Tab.Screen name="EventsStack" component={EventsStack} />
+      <Tab.Screen name="MembersStack" component={MembersStack} />
+      <Tab.Screen name="StatsStack" component={StatsStack} />
     </Tab.Navigator>
   );
 }

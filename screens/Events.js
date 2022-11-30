@@ -1,26 +1,47 @@
-// const wait = (timeout) => {
-//   return new Promise((resolve) => setTimeout(resolve, timeout));
-// };
-// import { useContext, useCallback } from "react";
-// import { AppContext } from "../contexts/AppContext";
-// const { eventsData, refresh, setRefresh } = useContext(AppContext);
-
-// const onRefresh = useCallback(() => {
-//   setRefresh(true);
-//   wait(2000).then(() => setRefresh(false));
-// }, []);
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TouchableWithoutFeedback,
+  ScrollView,
+  SectionList,
 } from "react-native";
 
+import { useContext, useCallback } from "react";
+import { AppContext } from "../contexts/AppContext";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { useSelector } from "react-redux";
+
+const wait = (timeout) => {
+  return new Promise((resolve) => setTimeout(resolve, timeout));
+};
 export default function Events({ navigation }) {
-  const { events, loading } = useSelector((state) => state.event);
+  const {
+    events,
+    refresh,
+    setRefresh,
+    refreshing,
+    setRefreshing,
+    setUpdate,
+    update,
+  } = useContext(AppContext);
+  const sectionData = events.reduce((acc, item) => {
+    if (acc.find((i) => i.semester == item.semester)) {
+      return acc.map((i) =>
+        i.semester == item.semester ? { ...i, data: [...i.data, item] } : i
+      );
+    } else {
+      return [...acc, { semester: item.semester, data: [item] }];
+    }
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefresh(!refresh);
+    setRefreshing(true);
+    wait(2000).then(() => {
+      setRefreshing(false);
+    });
+  }, []);
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
       onPress={() => navigation.navigate("Event Details", item)}
@@ -39,12 +60,15 @@ export default function Events({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <FlatList
-        data={events}
+      <SectionList
+        sections={sectionData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        // onRefresh={onRefresh}
-        // refreshing={refresh}
+        onRefresh={onRefresh}
+        refreshing={refreshing}
+        renderSectionHeader={({ section: { semester } }) => (
+          <Text>{semester}</Text>
+        )}
       />
 
       <TouchableOpacity
@@ -54,7 +78,8 @@ export default function Events({ navigation }) {
           height: 250,
           borderRadius: 50,
           position: "absolute",
-          zIndex: 0,
+          bottom: 25,
+          zIndex: 2,
         }}
       >
         <Text>+</Text>

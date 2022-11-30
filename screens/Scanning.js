@@ -3,14 +3,14 @@ import React, { useState, useEffect, useContext } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { AppContext } from "../contexts/AppContext";
 import axios from "axios";
-import { eventsStoredData, unsyncedData } from "../hooks/LocalStorage";
+import { storeItem } from "../hooks/LocalStorage";
 
 export default function Scanning({ route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const { membersData, eventsData, queue, online, update, setUpdate } =
+  const { members, events, queue, online, setUpdate, update } =
     useContext(AppContext);
-  const event = eventsData.find((event) => event.id === route.params.id);
+  const event = events.find((event) => event.id === route.params.id);
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -25,7 +25,7 @@ export default function Scanning({ route }) {
     const scanResults = JSON.parse(data);
 
     if (
-      membersData.some(
+      members.some(
         (member) =>
           member.id === scanResults.id &&
           member.first_name === scanResults.first_name
@@ -53,8 +53,8 @@ export default function Scanning({ route }) {
         );
       } else {
         event.members_attended.push(scanResults);
-        eventsStoredData("events_data", JSON.stringify(eventsData));
-        setUpdate(!update);
+        storeItem("stored_events", JSON.stringify(events));
+
         Alert.alert(
           "Attendance Recorded",
           `${scanResults.first_name} has been marked present!`,
@@ -81,10 +81,11 @@ export default function Scanning({ route }) {
             queue.push(
               `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
             );
-            unsyncedData("unsynced_data", JSON.stringify(queue));
+            storeItem("stored_links_queue", JSON.stringify(queue));
           }
         }
       }
+      setUpdate(!update);
     } else {
       setScanned(true);
       Alert.alert(

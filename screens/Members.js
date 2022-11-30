@@ -1,31 +1,62 @@
 import {
   View,
   Text,
-  Button,
   FlatList,
   StyleSheet,
   StatusBar,
   TouchableWithoutFeedback,
+  SectionList,
 } from "react-native";
-import { useContext, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useContext } from "react";
+import { AppContext } from "../contexts/AppContext";
 
-// import { AppContext } from "../contexts/AppContext";
 export default function Members({ navigation }) {
-  // const { membersData, setMembersData } = useContext(AppContext);
-  const { members, loading } = useSelector((state) => state.member);
+  const { members, setMembers } = useContext(AppContext);
 
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
       onPress={() => navigation.navigate("Member Details", item)}
     >
       <View style={styles.item}>
-        <Text style={styles.title}>
-          {item.first_name} {item.other_names} {item.last_name}
-        </Text>
+        <View
+          style={{
+            borderRadius: 50,
+            width: 50,
+            height: 50,
+            backgroundColor: "#24acf2",
+          }}
+        >
+          <Text>jskfrgjkrls</Text>
+        </View>
+        <View>
+          <Text style={styles.title}>
+            {item.first_name} {item.other_names} {item.last_name}
+          </Text>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
+  // const renderItem = ({ item }) => (
+  //   <TouchableWithoutFeedback
+  //     onPress={() => navigation.navigate("Member Details", item)}
+  //   >
+  //     <View style={styles.item}>
+  //       <View
+  //         style={{
+  //           borderRadius: 50,
+  //           width: 50,
+  //           height: 50,
+  //           backgroundColor: "black",
+  //         }}
+  //       >
+  //         <Text>jskfrgjkrls</Text>
+  //       </View>
+  //       <Text style={styles.title}>
+  //         {item.first_name} {item.other_names} {item.last_name}
+  //       </Text>
+  //     </View>
+  //   </TouchableWithoutFeedback>
+  // );
 
   return (
     <View>
@@ -43,14 +74,15 @@ const styles = StyleSheet.create({
     marginTop: StatusBar.currentHeight || 0,
   },
   item: {
-    backgroundColor: "#24acf2",
+    flexDirection: "row",
+    // backgroundColor: "#24acf2",
     padding: 20,
     marginVertical: 15,
     marginHorizontal: 25,
     borderRadius: 20,
-    alignItems: "center",
+    // alignItems: "center",
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
   },
 });
