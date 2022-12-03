@@ -1,31 +1,48 @@
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   TouchableWithoutFeedback,
-  ScrollView,
+  TouchableOpacity,
   SectionList,
+  TextInput,
+  Alert,
 } from "react-native";
+import Modal from "react-native-modal";
+import { Picker } from "@react-native-picker/picker";
+import axios from "axios";
 
-import { useContext, useCallback } from "react";
+import { useContext, useCallback, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
-import { TouchableOpacity } from "react-native-gesture-handler";
 
 const wait = (timeout) => {
   return new Promise((resolve) => setTimeout(resolve, timeout));
 };
 export default function Events({ navigation }) {
-  const {
-    events,
-    refresh,
-    setRefresh,
-    refreshing,
-    setRefreshing,
-    setUpdate,
-    update,
-  } = useContext(AppContext);
-  const sectionData = events.reduce((acc, item) => {
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [eventName, onChangeEventName] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedWeek, setSelectedWeek] = useState("");
+  let payload = {
+    name: eventName,
+    category: selectedCategory,
+    semester: selectedSemester,
+  };
+
+  const [searchText, setSearchText] = useState();
+
+  const { events, refresh, setRefresh, refreshing, setRefreshing, online } =
+    useContext(AppContext);
+
+  //filtering
+  const searchFilteredData = searchText
+    ? events.filter((x) =>
+        x.name.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : events;
+
+  const sectionData = searchFilteredData.reduce((acc, item) => {
     if (acc.find((i) => i.semester == item.semester)) {
       return acc.map((i) =>
         i.semester == item.semester ? { ...i, data: [...i.data, item] } : i
@@ -60,6 +77,16 @@ export default function Events({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
+      <View style={{ margin: 10 }}>
+        <TextInput
+          style={styles.input}
+          placeholder="Search Event"
+          onChangeText={(text) => {
+            setSearchText(text);
+          }}
+          value={searchText}
+        />
+      </View>
       <SectionList
         sections={sectionData}
         renderItem={renderItem}
@@ -67,23 +94,250 @@ export default function Events({ navigation }) {
         onRefresh={onRefresh}
         refreshing={refreshing}
         renderSectionHeader={({ section: { semester } }) => (
-          <Text>{semester}</Text>
+          <Text
+            style={{
+              fontFamily: "bold",
+              fontSize: 20,
+              marginLeft: 20,
+              textAlign: "center",
+            }}
+          >
+            {semester}
+          </Text>
         )}
       />
-
       <TouchableOpacity
         style={{
-          backgroundColor: "blue",
-          width: 250,
-          height: 250,
+          backgroundColor: "#24acf2",
+          width: 50,
+          height: 50,
           borderRadius: 50,
           position: "absolute",
           bottom: 25,
-          zIndex: 2,
+          right: 25,
+          justifyContent: "center",
+          alignContent: "center",
+        }}
+        onPress={() => {
+          setModalVisible(true);
         }}
       >
-        <Text>+</Text>
+        <Text style={{ textAlign: "center", fontFamily: "bold", fontSize: 35 }}>
+          +
+        </Text>
       </TouchableOpacity>
+
+      <Modal
+        isVisible={isModalVisible}
+        animationIn="slideInUp"
+        animationOut="bounceOut"
+      >
+        <View
+          style={{
+            backgroundColor: "white",
+            padding: 30,
+            justifyContent: "center",
+            alignContent: "center",
+          }}
+        >
+          <View style={{ padding: 20 }}>
+            <Text
+              style={{ textAlign: "center", fontFamily: "bold", fontSize: 25 }}
+            >
+              Create A New Event
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={{
+                fontFamily: "regular",
+                fontSize: 15,
+                marginTop: 10,
+                marginBottom: 10,
+              }}
+            >
+              Event Name
+            </Text>
+            <TextInput
+              style={styles.inputModal}
+              onChangeText={onChangeEventName}
+              value={eventName}
+            />
+            <Text
+              style={{
+                fontFamily: "regular",
+                fontSize: 15,
+                marginTop: 10,
+                marginBottom: 10,
+              }}
+            >
+              Event Category
+            </Text>
+            <Picker
+              selectedValue={selectedCategory}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedCategory(itemValue)
+              }
+              style={styles.inputModal}
+            >
+              <Picker.Item label="" value="" />
+              <Picker.Item label="Morning Services" value="Morning Services" />
+              <Picker.Item
+                label="Evening Training Classes"
+                value="Evening Training Classes"
+              />
+              <Picker.Item label="Dawn Prayers" value="Dawn Prayers" />
+              <Picker.Item
+                label="Evening Bible Classes"
+                value="Evening Bible Classes"
+              />
+              <Picker.Item label="Evening Prayers" value="Evening Prayers" />
+              <Picker.Item label="Others" value="Others" />
+            </Picker>
+            <Text
+              style={{
+                fontFamily: "regular",
+                fontSize: 15,
+                marginTop: 10,
+                marginBottom: 10,
+              }}
+            >
+              Semester
+            </Text>
+            <Picker
+              selectedValue={selectedSemester}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedSemester(itemValue)
+              }
+              style={styles.input}
+            >
+              <Picker.Item label="" value="" />
+
+              <Picker.Item label="S1-2022/2023" value="S1-2022/2023" />
+            </Picker>
+            <Text
+              style={{
+                fontFamily: "regular",
+                fontSize: 15,
+                marginTop: 10,
+                marginBottom: 10,
+              }}
+            >
+              Week
+            </Text>
+            <Picker
+              selectedValue={selectedWeek}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedWeek(itemValue)
+              }
+              style={styles.input}
+            >
+              <Picker.Item label="" value="" />
+              <Picker.Item label="Week 1" value="Week 1" />
+              <Picker.Item label="Week 2" value="Week 2" />
+              <Picker.Item label="Week 3" value="Week 3" />
+              <Picker.Item label="Week 4" value="Week 4" />
+              <Picker.Item label="Week 5" value="Week 5" />
+              <Picker.Item label="Week 6" value="Week 6" />
+              <Picker.Item label="Week 7" value="Week 7" />
+              <Picker.Item label="Week 8" value="Week 8" />
+              <Picker.Item label="Week 9" value="Week 9" />
+              <Picker.Item label="Week 10" value="Week 10" />
+              <Picker.Item label="Week 11" value="Week 11" />
+              <Picker.Item label="Week 12" value="Week 12" />
+            </Picker>
+
+            <TouchableOpacity
+              style={{ padding: 15, backgroundColor: "green", margin: 15 }}
+              onPress={() => {
+                if (
+                  [
+                    eventName,
+                    selectedCategory,
+                    selectedSemester,
+                    selectedWeek,
+                  ].some((item) => item === "")
+                ) {
+                  Alert.alert(
+                    "Missing Details",
+                    "There are some missing details.\nPlease make sure you enter all details accurately",
+                    [
+                      {
+                        text: "OK",
+                      },
+                    ]
+                  );
+                } else
+                  Alert.alert(
+                    `Check Correctness Of Details Provided`,
+                    `Are you sure you want to create a new event with the following details?\nEvent Name =${eventName}\nEvent Category=${selectedCategory}\nSemester=${selectedSemester}\nWeek=${selectedWeek} `,
+                    [
+                      {
+                        text: "Cancel",
+
+                        style: "cancel",
+                      },
+                      {
+                        text: "Create Event",
+                        onPress: () => {
+                          setModalVisible(false);
+                          onChangeEventName("");
+                          setSelectedCategory("");
+                          setSelectedSemester("");
+                          setSelectedWeek("");
+                          if (online) {
+                            axios
+                              .post(
+                                "https://ug-attendance-app.herokuapp.com/api/events/",
+                                payload
+                              )
+                              .then(() => {
+                                console.log(payload);
+                              })
+                              .catch((err) => {
+                                console.warn(err);
+                                console.log(payload);
+                              });
+                          }
+                        },
+                      },
+                    ]
+                  );
+              }}
+            >
+              <Text style={{ textAlign: "center" }}>Create Event</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ padding: 15, backgroundColor: "red", margin: 15 }}
+              onPress={() => {
+                Alert.alert(
+                  "Warning",
+                  "Are you sure you want to exit? All changes will be lost.",
+                  [
+                    {
+                      text: "Cancel",
+
+                      style: "cancel",
+                    },
+                    {
+                      text: "Exit",
+                      onPress: () => {
+                        setModalVisible(false);
+                        onChangeEventName("");
+                        setSelectedCategory("");
+                        setSelectedSemester("");
+                        setSelectedWeek("");
+                      },
+                    },
+                  ]
+                );
+              }}
+            >
+              <Text style={{ textAlign: "center" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -95,6 +349,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     borderRadius: 15,
     alignItems: "center",
+    elevation: 10,
   },
   title: {
     fontSize: 32,
@@ -126,5 +381,24 @@ const styles = StyleSheet.create({
     color: "white",
     padding: 5,
     borderRadius: 15,
+  },
+
+  input: {
+    height: 40,
+    fontFamily: "bold",
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: "black",
+    borderRadius: 20,
+    backgroundColor: "#24acf2",
+  },
+  inputModal: {
+    height: 40,
+    fontFamily: "bold",
+
+    borderWidth: 1,
+    borderColor: "black",
+
+    backgroundColor: "#24acf2",
   },
 });

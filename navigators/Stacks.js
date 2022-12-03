@@ -13,7 +13,7 @@ function EventsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        title: "Attendance App",
+        title: "UG Church of Christ Attendance App",
         headerStyle: {
           backgroundColor: "#24acf2",
         },
@@ -33,7 +33,7 @@ function MembersStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        title: "Attendance App",
+        title: "UG Church of Christ Attendance App",
         headerStyle: {
           backgroundColor: "#24acf2",
         },
@@ -52,7 +52,7 @@ function StatsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        title: "Attendance App",
+        title: "UG Church of Christ Attendance App",
         headerStyle: {
           backgroundColor: "#24acf2",
         },
