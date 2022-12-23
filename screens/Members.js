@@ -5,13 +5,24 @@ import {
   StyleSheet,
   StatusBar,
   TouchableWithoutFeedback,
-  SectionList,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 
 export default function Members({ navigation }) {
   const { members, setMembers } = useContext(AppContext);
+  const [searchText, setSearchText] = useState();
+
+  const searchFilteredData = searchText
+    ? members.filter(
+        (x) =>
+          x.first_name.toLowerCase().includes(searchText.toLowerCase()) ||
+          x.other_names.toLowerCase().includes(searchText.toLowerCase()) ||
+          x.last_name.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : members;
 
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
@@ -21,12 +32,24 @@ export default function Members({ navigation }) {
         <View
           style={{
             borderRadius: 50,
+
             width: 50,
             height: 50,
             backgroundColor: "#24acf2",
+            justifyContent: "center", //Centered horizontally
+            alignItems: "center", //Centered vertically
           }}
         >
-          <Text>jskfrgjkrls</Text>
+          <Text
+            style={{
+              textAlign: "center",
+              fontFamily: "bold",
+              fontSize: 30,
+            }}
+          >
+            {item.first_name[0]}
+            {item.last_name[0]}
+          </Text>
         </View>
         <View>
           <Text style={styles.title}>
@@ -60,8 +83,19 @@ export default function Members({ navigation }) {
 
   return (
     <View>
+      <View style={{ margin: 10 }}>
+        <TextInput
+          style={styles.input}
+          placeholder="Search Event"
+          onChangeText={(text) => {
+            setSearchText(text);
+          }}
+          value={searchText}
+        />
+      </View>
+      <Text>Number of members: {searchFilteredData.length}</Text>
       <FlatList
-        data={members}
+        data={searchFilteredData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />
@@ -75,8 +109,8 @@ const styles = StyleSheet.create({
   },
   item: {
     flexDirection: "row",
-    // backgroundColor: "#24acf2",
-    padding: 20,
+    backgroundColor: "#24acf8",
+    // padding: 20,
     marginVertical: 15,
     marginHorizontal: 25,
     borderRadius: 20,
@@ -84,5 +118,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    margin: 10,
   },
 });
