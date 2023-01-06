@@ -33,7 +33,7 @@ function MembersStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        title: "UG Church of Christ Attendance App",
+        title: "Attendance App",
         headerStyle: {
           backgroundColor: "#24acf2",
         },
@@ -52,7 +52,7 @@ function StatsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        title: "UG Church of Christ Attendance App",
+        title: "Attendance App",
         headerStyle: {
           backgroundColor: "#24acf2",
         },
@@ -61,9 +61,7 @@ function StatsStack() {
           fontFamily: "bold",
         },
       }}
-    >
-      <Stack.Screen name="Stats" component={Stats} />
-    </Stack.Navigator>
+    ></Stack.Navigator>
   );
 }
 export { EventsStack, MembersStack, StatsStack };

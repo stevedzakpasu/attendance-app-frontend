@@ -16,10 +16,15 @@ export default function App() {
   const [refresh, setRefresh] = useState(false);
   const [update, setUpdate] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [token, setToken] = useState("");
   const eventsInLocalStorage = getItem("stored_events");
   const membersInLocalStorage = getItem("stored_members");
   const linksQueueInLocalStorage = getItem("stored_links_queue");
-
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    Authorization: `Bearer ${token}`,
+  };
   useEffect(() => {
     async function loadFonts() {
       try {
@@ -39,7 +44,28 @@ export default function App() {
         setAppIsReady(true);
       }
     }
+
+    async function getToken() {
+      const reqData = `grant_type=&username=admin&password=COCAdmin&scope=&client_id=&client_secret=`;
+      await axios({
+        method: "post",
+        url: "https://ug-attendance-app.herokuapp.com/token",
+        data: reqData,
+
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      })
+        .then((response) => {
+          if (response.status == 200) {
+            setToken(response.data.access_token);
+          }
+        })
+        .catch((error) => {});
+    }
+
     loadFonts();
+    getToken();
   }, []);
 
   // check if device is connected to the internet
@@ -86,10 +112,14 @@ export default function App() {
         while (queue.length !== 0) {
           for (const link of queue) {
             const index = queue.indexOf(link);
-            await axios.post(link).then(() => {
-              setQueue(queue.splice(index, 1));
-              storeItem("stored_links_queue", JSON.stringify(queue));
-            });
+            await axios
+              .post(link, {
+                headers: headers,
+              })
+              .then(() => {
+                setQueue(queue.splice(index, 1));
+                storeItem("stored_links_queue", JSON.stringify(queue));
+              });
           }
         }
       }
@@ -104,7 +134,9 @@ export default function App() {
     async function fetchAndLoadEvents() {
       if (online) {
         await axios
-          .get("https://ug-attendance-app.herokuapp.com/api/events/")
+          .get("https://ug-attendance-app.herokuapp.com/api/events/", {
+            headers: headers,
+          })
           .then((response) => {
             setEvents(response.data);
             storeItem("stored_events", JSON.stringify(response.data));
@@ -114,7 +146,9 @@ export default function App() {
     async function fetchAndLoadMembers() {
       if (online) {
         await axios
-          .get("https://ug-attendance-app.herokuapp.com/api/members_cards/")
+          .get("https://ug-attendance-app.herokuapp.com/api/members_cards/", {
+            headers: headers,
+          })
           .then((response) => {
             setMembers(response.data);
             storeItem("stored_members", JSON.stringify(response.data));
@@ -150,12 +184,15 @@ export default function App() {
           online,
           update,
           refreshing,
+          token,
+          setToken,
           setEvents,
           setMembers,
           setQueue,
           setRefresh,
           setUpdate,
           setRefreshing,
+          headers,
         }}
       >
         <MyTabs />

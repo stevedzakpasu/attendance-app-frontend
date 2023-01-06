@@ -1,29 +1,32 @@
-import { StyleSheet, View, Alert } from "react-native";
-import React, { useState, useEffect, useContext } from "react";
-import { BarCodeScanner } from "expo-barcode-scanner";
-import { AppContext } from "../contexts/AppContext";
 import axios from "axios";
+import CryptoJS from "crypto-js";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import React, { useContext, useEffect, useState } from "react";
+import { Alert, StyleSheet, View } from "react-native";
+import { AppContext } from "../contexts/AppContext";
 import { storeItem } from "../hooks/LocalStorage";
-
 export default function Scanning({ route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const { members, events, queue, online, setUpdate, update } =
+  const { members, events, queue, online, setUpdate, update, headers } =
     useContext(AppContext);
   const event = events.find((event) => event.id === route.params.id);
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
       const status = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === "granted");
+      setHasPermission(status == "granted");
     };
 
     getBarCodeScannerPermissions();
   }, []);
 
   async function handleBarCodeScanned({ type, data }) {
-    const scanResults = JSON.parse(data);
+    const bytes = CryptoJS.AES.decrypt(data, "XkhZG4fW2t2W");
+    const scanResults = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
+    // const scanResults = result;
+    console.log(bytes);
     if (
       members.some(
         (member) =>
@@ -70,7 +73,10 @@ export default function Scanning({ route }) {
 
         if (online) {
           axios.post(
-            `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
+            `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`,
+            {
+              headers: headers,
+            }
           );
         } else {
           if (

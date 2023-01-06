@@ -9,11 +9,9 @@ export default function MyTabs() {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === "EventsStack") {
+          if (route.name === "Events") {
             iconName = focused ? "calendar" : "calendar-outline";
-          } else if (route.name === "StatsStack") {
-            iconName = focused ? "stats-chart" : "stats-chart-outline";
-          } else if (route.name === "MembersStack") {
+          } else if (route.name === "Members") {
             iconName = focused ? "people" : "people-outline";
           }
 
@@ -28,9 +26,8 @@ export default function MyTabs() {
         },
       })}
     >
-      <Tab.Screen name="EventsStack" component={EventsStack} />
-      <Tab.Screen name="MembersStack" component={MembersStack} />
-      <Tab.Screen name="StatsStack" component={StatsStack} />
+      <Tab.Screen name="Events" component={EventsStack} />
+      <Tab.Screen name="Members" component={MembersStack} />
     </Tab.Navigator>
   );
 }

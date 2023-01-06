@@ -1,61 +1,56 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Dimensions } from "react-native";
-import {
-  LineChart,
-  BarChart,
-  PieChart,
-  ProgressChart,
-  ContributionGraph,
-  StackedBarChart,
-} from "react-native-chart-kit";
+import { BarChart } from "react-native-chart-kit";
 
 export default function Stats() {
   return (
     <View>
-      <Text>Bezier Line Chart</Text>
-      <LineChart
+      <Text>Chart</Text>
+      <BarChart
         data={{
-          labels: ["January", "February", "March", "April", "May", "June"],
+          labels: [
+            "Morning Services",
+            "Evening Training Classes",
+            "Dawn Prayers",
+            "Evening Bible Classes",
+            "Evening Prayers",
+            "Others",
+          ],
           datasets: [
             {
-              data: [
-                Math.random() * 100,
-                Math.random() * 100,
-                Math.random() * 100,
-                Math.random() * 100,
-                Math.random() * 100,
-                Math.random() * 100,
-              ],
+              data: [15, 300, 215, 14, 141, 57],
             },
           ],
         }}
-        width={Dimensions.get("window").width} // from react-native
-        height={220}
-        yAxisLabel="$"
-        yAxisSuffix="k"
+        width={Dimensions.get("window").width}
+        height={800}
         yAxisInterval={1} // optional, defaults to 1
+        verticalLabelRotation={35}
         chartConfig={{
-          backgroundColor: "#e26a00",
-          backgroundGradientFrom: "#fb8c00",
-          backgroundGradientTo: "#ffa726",
-          decimalPlaces: 2, // optional, defaults to 2dp
+          backgroundColor: "#24acf2",
+          backgroundGradientFrom: "#24acf2",
+          backgroundGradientTo: "#24acf2",
+          decimalPlaces: 0, // optional, defaults to 2dp
           color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
+
           propsForDots: {
             r: "6",
             strokeWidth: "2",
             stroke: "#ffa726",
           },
         }}
-        bezier
         style={{
           marginVertical: 8,
           borderRadius: 16,
         }}
+        // withHorizontalLabels={false}
+        fromZero={true}
+        showValuesOnTopOfBars={true}
+        withInnerLines={false}
+        withCustomBarColorFromData={true}
+        // showBarTops={false}
       />
     </View>
   );
