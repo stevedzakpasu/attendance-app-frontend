@@ -3,9 +3,8 @@ import EventDetails from "../screens/EventDetails";
 import MemberDetails from "../screens/MemberDetails";
 import Events from "../screens/Events";
 import Members from "../screens/Members";
-import Stats from "../screens/Stats";
+
 import Scanning from "../screens/Scanning";
-import { Text } from "react-native";
 
 const Stack = createStackNavigator();
 
@@ -48,20 +47,5 @@ function MembersStack() {
     </Stack.Navigator>
   );
 }
-function StatsStack() {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        title: "Attendance App",
-        headerStyle: {
-          backgroundColor: "#24acf2",
-        },
-        // headerTintColor: "#000",
-        headerTitleStyle: {
-          fontFamily: "bold",
-        },
-      }}
-    ></Stack.Navigator>
-  );
-}
-export { EventsStack, MembersStack, StatsStack };
+
+export { EventsStack, MembersStack };

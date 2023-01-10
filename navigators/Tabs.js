@@ -1,4 +1,4 @@
-import { EventsStack, MembersStack, StatsStack } from "./Stacks";
+import { EventsStack, MembersStack } from "./Stacks";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 export default function MyTabs() {
