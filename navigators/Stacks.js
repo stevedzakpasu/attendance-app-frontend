@@ -1,6 +1,6 @@
 import { createStackNavigator } from "@react-navigation/stack";
 import EventDetails from "../screens/EventDetails";
-import MemberDetails from "../screens/MemberDetails";
+
 import Events from "../screens/Events";
 import Members from "../screens/Members";
 
@@ -43,7 +43,6 @@ function MembersStack() {
       }}
     >
       <Stack.Screen name="Members" component={Members} />
-      <Stack.Screen name="Member Details" component={MemberDetails} />
     </Stack.Navigator>
   );
 }
