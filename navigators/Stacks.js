@@ -12,7 +12,7 @@ function EventsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        title: "UG Church of Christ Attendance App",
+        title: "Attendance App",
         headerStyle: {
           backgroundColor: "#24acf2",
         },

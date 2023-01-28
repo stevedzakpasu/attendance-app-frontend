@@ -4,12 +4,11 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { AppContext } from "../contexts/AppContext";
-import { storeItem } from "../hooks/LocalStorage";
 export default function Scanning({ route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const { members, events, queue, online, setUpdate, update, headers } =
-    useContext(AppContext);
+  const { members, events, token } = useContext(AppContext);
+
   const event = events.find((event) => event.id === route.params.id);
 
   useEffect(() => {
@@ -24,9 +23,6 @@ export default function Scanning({ route }) {
   async function handleBarCodeScanned({ type, data }) {
     const bytes = CryptoJS.AES.decrypt(data, "XkhZG4fW2t2W");
     const scanResults = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-
-    // const scanResults = result;
-    console.log(bytes);
     if (
       members.some(
         (member) =>
@@ -55,9 +51,6 @@ export default function Scanning({ route }) {
           ]
         );
       } else {
-        event.members_attended.push(scanResults);
-        storeItem("stored_events", JSON.stringify(events));
-
         Alert.alert(
           "Attendance Recorded",
           `${scanResults.first_name} has been marked present!`,
@@ -70,28 +63,19 @@ export default function Scanning({ route }) {
             },
           ]
         );
-
-        if (online) {
-          axios.post(
-            `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`,
-            {
-              headers: headers,
-            }
-          );
-        } else {
-          if (
-            !queue.includes(
-              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-            )
-          ) {
-            queue.push(
-              `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`
-            );
-            storeItem("stored_links_queue", JSON.stringify(queue));
+        event.members_attended.push(scanResults);
+        await axios.post(
+          `https://ug-attendance-app.herokuapp.com/api/events/${route.params.id}/add_attendee?member_id=${scanResults.id}`,
+          {},
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              Authorization: `Bearer ${token}`,
+            },
           }
-        }
+        );
       }
-      setUpdate(!update);
     } else {
       setScanned(true);
       Alert.alert(

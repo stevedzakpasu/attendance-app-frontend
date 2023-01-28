@@ -8,28 +8,52 @@ import {
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import { useContext, useState } from "react";
+import { useContext, useState, useCallback } from "react";
 import { AppContext } from "../contexts/AppContext";
 
 export default function Members({ navigation }) {
-  const { members, setMembers } = useContext(AppContext);
+  const { members, refresh, setRefresh, refreshing, setRefreshing } =
+    useContext(AppContext);
   const [searchText, setSearchText] = useState();
+  const wait = (timeout) => {
+    return new Promise((resolve) => setTimeout(resolve, timeout));
+  };
+  const onRefresh = useCallback(() => {
+    setRefresh(!refresh);
+    setRefreshing(true);
+    wait(2000).then(() => {
+      setRefreshing(false);
+    });
+  }, []);
 
   const searchFilteredData = searchText
     ? members.filter(
         (x) =>
           x.first_name.toLowerCase().includes(searchText.toLowerCase()) ||
-          x.other_names.toLowerCase().includes(searchText.toLowerCase()) ||
           x.last_name.toLowerCase().includes(searchText.toLowerCase())
       )
     : members;
 
+  const listEmptyComponent = () => {
+    return (
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: "bold",
+            fontSize: 32,
+            justifyContent: "center",
+          }}
+        >
+          No member found :(
+        </Text>
+      </View>
+    );
+  };
+
   const renderItem = ({ item }) => (
-    <TouchableWithoutFeedback
-      onPress={() => navigation.navigate("Member Details", item)}
-    >
-      <View style={styles.item}>
-        <View
+    <TouchableWithoutFeedback>
+      {/* <View
           style={{
             borderRadius: 50,
 
@@ -39,23 +63,12 @@ export default function Members({ navigation }) {
             justifyContent: "center", //Centered horizontally
             alignItems: "center", //Centered vertically
           }}
-        >
-          <Text
-            style={{
-              textAlign: "center",
-              fontFamily: "bold",
-              fontSize: 30,
-            }}
-          >
-            {item.first_name[0]}
-            {item.last_name[0]}
-          </Text>
-        </View>
-        <View>
-          <Text style={styles.title}>
-            {item.first_name} {item.other_names} {item.last_name}
-          </Text>
-        </View>
+        ></View> */}
+      <View style={styles.item}>
+        <Text style={styles.title}>
+          {item.first_name} {item.last_name}
+        </Text>
+        <Text style={styles.subtitle}>Membership ID: {item.id}</Text>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -82,22 +95,37 @@ export default function Members({ navigation }) {
   // );
 
   return (
-    <View>
+    <View style={{ marginBottom: 30 }}>
       <View style={{ margin: 10 }}>
         <TextInput
           style={styles.input}
-          placeholder="Search Event"
+          placeholder="Search"
           onChangeText={(text) => {
             setSearchText(text);
           }}
           value={searchText}
         />
       </View>
-      <Text>Number of members: {searchFilteredData.length}</Text>
+      <Text
+        style={{
+          textAlign: "center",
+          fontSize: 16,
+          margin: 10,
+          fontFamily: "medium",
+
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        Number of members: {searchFilteredData.length}
+      </Text>
       <FlatList
         data={searchFilteredData}
         renderItem={renderItem}
+        onRefresh={onRefresh}
+        refreshing={refreshing}
         keyExtractor={(item) => item.id}
+        ListEmptyComponent={listEmptyComponent}
       />
     </View>
   );
@@ -108,16 +136,29 @@ const styles = StyleSheet.create({
     marginTop: StatusBar.currentHeight || 0,
   },
   item: {
-    flexDirection: "row",
+    flexDirection: "column",
     backgroundColor: "#24acf8",
-    // padding: 20,
-    marginVertical: 15,
-    marginHorizontal: 25,
-    borderRadius: 20,
-    // alignItems: "center",
+    borderWidth: 1,
+    alignItems: "flex-start",
   },
   title: {
     fontSize: 24,
+    fontFamily: "bold",
+    marginLeft: 48,
+  },
+  subtitle: {
+    fontSize: 16,
     margin: 10,
+    fontFamily: "medium",
+    marginLeft: 48,
+  },
+  input: {
+    height: 40,
+    fontFamily: "bold",
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: "black",
+    borderRadius: 20,
+    // backgroundColor: "#808080",
   },
 });

@@ -4,7 +4,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   TouchableOpacity,
-  SectionList,
+  FlatList,
   TextInput,
   Alert,
 } from "react-native";
@@ -32,7 +32,7 @@ export default function Events({ navigation }) {
 
   const [searchText, setSearchText] = useState();
 
-  const { events, refresh, setRefresh, refreshing, setRefreshing, online } =
+  const { events, refresh, setRefresh, refreshing, setRefreshing } =
     useContext(AppContext);
 
   //filtering
@@ -41,16 +41,6 @@ export default function Events({ navigation }) {
         x.name.toLowerCase().includes(searchText.toLowerCase())
       )
     : events;
-
-  const sectionData = searchFilteredData.reduce((acc, item) => {
-    if (acc.find((i) => i.semester == item.semester)) {
-      return acc.map((i) =>
-        i.semester == item.semester ? { ...i, data: [...i.data, item] } : i
-      );
-    } else {
-      return [...acc, { semester: item.semester, data: [item] }];
-    }
-  }, []);
 
   const onRefresh = useCallback(() => {
     setRefresh(!refresh);
@@ -66,7 +56,9 @@ export default function Events({ navigation }) {
       <View style={styles.item}>
         <Text style={styles.date}>{item.created_on}</Text>
         <Text style={styles.category}>{item.category}</Text>
+        <Text style={styles.subtitle}>{item.semester}</Text>
         <Text style={styles.title}>{item.name}</Text>
+
         <Text style={styles.subtitle}>
           {events.find((obj) => obj.id === item.id).members_attended.length}{" "}
           Members Attended
@@ -75,38 +67,57 @@ export default function Events({ navigation }) {
     </TouchableWithoutFeedback>
   );
 
+  const listEmptyComponent = () => {
+    return (
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: "bold",
+            fontSize: 32,
+            justifyContent: "center",
+          }}
+        >
+          No events found :(
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <View style={{ margin: 10 }}>
         <TextInput
           style={styles.input}
-          placeholder="Search Event"
+          placeholder="Search"
           onChangeText={(text) => {
             setSearchText(text);
           }}
           value={searchText}
         />
       </View>
-      <SectionList
-        sections={sectionData}
+      <Text
+        style={{
+          textAlign: "center",
+          fontSize: 16,
+          margin: 10,
+          fontFamily: "medium",
+
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        Number of events: {searchFilteredData.length}
+      </Text>
+      <FlatList
+        data={searchFilteredData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         onRefresh={onRefresh}
         refreshing={refreshing}
-        renderSectionHeader={({ section: { semester } }) => (
-          <Text
-            style={{
-              fontFamily: "bold",
-              fontSize: 20,
-              marginLeft: 20,
-              textAlign: "center",
-            }}
-          >
-            {semester}
-          </Text>
-        )}
+        ListEmptyComponent={listEmptyComponent}
       />
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={{
           backgroundColor: "#24acf2",
           width: 50,
@@ -125,7 +136,7 @@ export default function Events({ navigation }) {
         <Text style={{ textAlign: "center", fontFamily: "bold", fontSize: 35 }}>
           +
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <Modal
         isVisible={isModalVisible}
@@ -215,37 +226,6 @@ export default function Events({ navigation }) {
 
               <Picker.Item label="S1-2022/2023" value="S1-2022/2023" />
             </Picker>
-            <Text
-              style={{
-                fontFamily: "regular",
-                fontSize: 15,
-                marginTop: 10,
-                marginBottom: 10,
-              }}
-            >
-              Week
-            </Text>
-            <Picker
-              selectedValue={selectedWeek}
-              onValueChange={(itemValue, itemIndex) =>
-                setSelectedWeek(itemValue)
-              }
-              style={styles.input}
-            >
-              <Picker.Item label="" value="" />
-              <Picker.Item label="Week 1" value="Week 1" />
-              <Picker.Item label="Week 2" value="Week 2" />
-              <Picker.Item label="Week 3" value="Week 3" />
-              <Picker.Item label="Week 4" value="Week 4" />
-              <Picker.Item label="Week 5" value="Week 5" />
-              <Picker.Item label="Week 6" value="Week 6" />
-              <Picker.Item label="Week 7" value="Week 7" />
-              <Picker.Item label="Week 8" value="Week 8" />
-              <Picker.Item label="Week 9" value="Week 9" />
-              <Picker.Item label="Week 10" value="Week 10" />
-              <Picker.Item label="Week 11" value="Week 11" />
-              <Picker.Item label="Week 12" value="Week 12" />
-            </Picker>
 
             <TouchableOpacity
               style={{ padding: 15, backgroundColor: "green", margin: 15 }}
@@ -285,20 +265,11 @@ export default function Events({ navigation }) {
                           setSelectedCategory("");
                           setSelectedSemester("");
                           setSelectedWeek("");
-                          if (online) {
-                            axios
-                              .post(
-                                "https://ug-attendance-app.herokuapp.com/api/events/",
-                                payload
-                              )
-                              .then(() => {
-                                console.log(payload);
-                              })
-                              .catch((err) => {
-                                console.warn(err);
-                                console.log(payload);
-                              });
-                          }
+
+                          axios.post(
+                            "https://ug-attendance-app.herokuapp.com/api/events/",
+                            payload
+                          );
                         },
                       },
                     ]
@@ -345,7 +316,7 @@ const styles = StyleSheet.create({
   item: {
     backgroundColor: "#24acf2",
     padding: 40,
-    marginVertical: 15,
+    marginBottom: 15,
     marginHorizontal: 15,
     borderRadius: 15,
     alignItems: "center",
@@ -390,7 +361,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "black",
     borderRadius: 20,
-    backgroundColor: "#24acf2",
+    // backgroundColor: "#24acf2",
   },
   inputModal: {
     height: 40,
