@@ -123,7 +123,7 @@ export default function Members({ navigation }) {
         data={searchFilteredData}
         renderItem={renderItem}
         onRefresh={onRefresh}
-        refreshing={refreshing}
+        refreshing={refresh}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={listEmptyComponent}
       />

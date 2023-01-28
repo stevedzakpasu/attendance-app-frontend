@@ -102,7 +102,7 @@ export default function App() {
     }
     fetchAndLoadMembers();
     fetchAndLoadEvents();
-  }, [refreshing]);
+  }, [refresh]);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
