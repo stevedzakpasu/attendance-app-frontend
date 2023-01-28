@@ -69,7 +69,7 @@ export default function App() {
     }
 
     fetchData();
-  }, []);
+  }, [refresh]);
 
   useEffect(() => {
     async function fetchAndLoadEvents() {
