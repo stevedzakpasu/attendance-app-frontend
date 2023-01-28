@@ -69,7 +69,7 @@ export default function App() {
     }
 
     fetchData();
-  }, [refresh]);
+  }, []);
 
   useEffect(() => {
     async function fetchAndLoadEvents() {
@@ -102,7 +102,7 @@ export default function App() {
     }
     fetchAndLoadMembers();
     fetchAndLoadEvents();
-  }, [refresh]);
+  }, [refresh, events, members]);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
