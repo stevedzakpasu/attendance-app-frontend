@@ -6,26 +6,20 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
   TextInput,
-  TouchableOpacity,
 } from "react-native";
-import { useContext, useState, useCallback } from "react";
+import { storeItem } from "../hooks/LocalStorage";
+import { useContext, useState, useEffect } from "react";
 import { AppContext } from "../contexts/AppContext";
-
-export default function Members({ navigation }) {
-  const { members, refresh, setRefresh, refreshing, setRefreshing } =
-    useContext(AppContext);
+import axios from "axios";
+export default function Members() {
+  const { members, setMembers, token } = useContext(AppContext);
   const [searchText, setSearchText] = useState();
-  const wait = (timeout) => {
-    return new Promise((resolve) => setTimeout(resolve, timeout));
+  const [isMembersRefreshing, setIsMembersRefreshing] = useState(false);
+  const [membersRefreshing, setMembersRefreshing] = useState(false);
+  const onRefresh = () => {
+    setIsMembersRefreshing(true);
+    setMembersRefreshing(!membersRefreshing);
   };
-  const onRefresh = useCallback(() => {
-    setRefresh(!refresh);
-    setRefreshing(true);
-    wait(2000).then(() => {
-      setRefreshing(false);
-    });
-  }, []);
-
   const searchFilteredData = searchText
     ? members.filter(
         (x) =>
@@ -50,6 +44,26 @@ export default function Members({ navigation }) {
       </View>
     );
   };
+
+  useEffect(() => {
+    async function fetchMembers() {
+      await axios
+        .get("https://ug-attendance-app.herokuapp.com/api/members_cards/", {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setMembers(response.data);
+          storeItem("stored_members", JSON.stringify(response.data));
+          setIsMembersRefreshing(false);
+        });
+    }
+
+    fetchMembers();
+  }, [membersRefreshing]);
 
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback>
@@ -123,7 +137,7 @@ export default function Members({ navigation }) {
         data={searchFilteredData}
         renderItem={renderItem}
         onRefresh={onRefresh}
-        refreshing={refresh}
+        refreshing={isMembersRefreshing}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={listEmptyComponent}
       />

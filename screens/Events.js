@@ -11,19 +11,18 @@ import {
 import Modal from "react-native-modal";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
-
-import { useContext, useCallback, useState } from "react";
+import { storeItem } from "../hooks/LocalStorage";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 
-const wait = (timeout) => {
-  return new Promise((resolve) => setTimeout(resolve, timeout));
-};
 export default function Events({ navigation }) {
   const [isModalVisible, setModalVisible] = useState(false);
   const [eventName, onChangeEventName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedWeek, setSelectedWeek] = useState("");
+  const [eventsRefreshing, setEventsRefreshing] = useState(false);
+  const [isEventsRefreshing, setIsEventsRefreshing] = useState(false);
   let payload = {
     name: eventName,
     category: selectedCategory,
@@ -32,8 +31,7 @@ export default function Events({ navigation }) {
 
   const [searchText, setSearchText] = useState();
 
-  const { events, refresh, setRefresh, refreshing, setRefreshing } =
-    useContext(AppContext);
+  const { events, setEvents, token } = useContext(AppContext);
 
   //filtering
   const searchFilteredData = searchText
@@ -42,13 +40,10 @@ export default function Events({ navigation }) {
       )
     : events;
 
-  const onRefresh = useCallback(() => {
-    setRefresh(!refresh);
-    setRefreshing(true);
-    wait(2000).then(() => {
-      setRefreshing(false);
-    });
-  }, []);
+  const onRefresh = () => {
+    setIsEventsRefreshing(true);
+    setEventsRefreshing(!eventsRefreshing);
+  };
   const renderItem = ({ item }) => (
     <TouchableWithoutFeedback
       onPress={() => navigation.navigate("Event Details", item)}
@@ -84,6 +79,26 @@ export default function Events({ navigation }) {
     );
   };
 
+  useEffect(() => {
+    async function fetchEvents() {
+      await axios
+        .get("https://ug-attendance-app.herokuapp.com/api/events/", {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setEvents(response.data);
+          storeItem("stored_events", JSON.stringify(response.data));
+          setIsEventsRefreshing(false);
+        });
+    }
+
+    fetchEvents();
+  }, [eventsRefreshing]);
+
   return (
     <View style={{ flex: 1 }}>
       <View style={{ margin: 10 }}>
@@ -112,9 +127,9 @@ export default function Events({ navigation }) {
       <FlatList
         data={searchFilteredData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
         onRefresh={onRefresh}
-        refreshing={refreshing}
+        refreshing={isEventsRefreshing}
+        keyExtractor={(item) => item.id}
         ListEmptyComponent={listEmptyComponent}
       />
       {/* <TouchableOpacity
